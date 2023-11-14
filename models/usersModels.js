@@ -1,8 +1,8 @@
 const { Sequelize, Model, DataTypes } = require("sequelize");
 const db = require("../db");
-//const bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt");
 
-/*class User extends Model {
+class User extends Model {
   async Hash(password) {
     const salt = await bcrypt.genSalt(8);
     this.salt = salt;
@@ -14,7 +14,7 @@ const db = require("../db");
     const hash = await bcrypt.hash(password, this.salt);
     return hash === this.password;
   }
-}*/
+}
 
 User.init(
   {
@@ -44,9 +44,9 @@ User.init(
   }
 );
 
-/*User.beforeCreate(async (user) => {
+User.beforeCreate(async (user) => {
   const hash = await user.Hash(user.password);
   user.password = hash;
-});*/
+});
 
 module.exports = User;
