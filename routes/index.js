@@ -9,7 +9,13 @@ const generateToken = (payload) => {
   return jwt.sign(payload, secretKey, options);
 };
 router.post("/register", (req, res, next) => {
-  const { email, password, name } = req.body;
+  console.log(req.body);
+  const rol = req.body.rol || "usuario";
+  User.create({ ...req.body, rol }).then((user) => {
+    console.log("users", user);
+    return res.status(201).send(user);
+  });
+  /* const { email, password, name } = req.body;
   const role = req.body.role || "user";
   User.create(email, password, name, role)
     .then((user) => {
@@ -21,7 +27,7 @@ router.post("/register", (req, res, next) => {
 
       res.status(201).cookie("token", token).send(payload);
     })
-    .catch(next);
+    .catch(next); */
 });
 
 router.post("/login", (req, res) => {
