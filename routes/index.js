@@ -8,6 +8,22 @@ const generateToken = (payload) => {
   const options = { expiresIn: "1h" };
   return jwt.sign(payload, secretKey, options);
 };
+router.post("/register", (req, res, next) => {
+  const { email, password, name } = req.body;
+  const role = req.body.role || "user";
+  User.create(email, password, name, role)
+    .then((user) => {
+      const payload = {
+        email: user.email,
+        name: user.name,
+      };
+      const token = generateToken(payload);
+
+      res.status(201).cookie("token", token).send(payload);
+    })
+    .catch(next);
+});
+
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
   const status = 404;
