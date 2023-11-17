@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/usersModels");
 const jwt = require("jsonwebtoken");
+const validateAuth = require("../middleware/auth");
 
 const generateToken = (payload) => {
   const secretKey = "secret-key";
@@ -48,6 +49,13 @@ router.post("/login", (req, res) => {
         res.status(201).cookie("token", token).send(payload);
       }
     });
+  });
+  router.get("/home", validateAuth, (req, res) => {
+    res.send(req.user);
+  });
+
+  router.post("/logout", (req, res) => {
+    res.clearCookie("token").sendStatus(204);
   });
 });
 

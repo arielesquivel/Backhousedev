@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { generateToken, validateToken } = require("../config/tokens");
+const { generateToken, validateToken } = require("../config/envs");
 var cookieParser = require("cookie-parser");
 router.use(cookieParser());
 
