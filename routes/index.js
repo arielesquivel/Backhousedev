@@ -50,7 +50,7 @@ router.post("/login", (req, res) => {
       }
     });
   });
-  router.options("/", validateAuth, (req, res) => {
+  router.get("/home", validateAuth, (req, res) => {
     res.send(req.user);
   });
 
