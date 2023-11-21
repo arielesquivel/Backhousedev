@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/usersModels");
+const propiedadesModels = require("../models/propiedadesModels");
 const jwt = require("jsonwebtoken");
 const validateAuth = require("../middleware/auth");
 
@@ -58,8 +59,28 @@ router.post("/login", (req, res) => {
     res.clearCookie("token").sendStatus(204);
   });
 });
-router.get("/me", validateUser, (req, res) => {
+router.get("/me", validateAuth.validateUser, (req, res) => {
   res.send(req.user);
+});
+
+router.get("/", validateAuth.validateUser, (req, res) => {});
+router.post("/propiedades", validateAuth.validateUser, (req, res) => {
+  const payload = req.body;
+  const validation = req.user.email;
+  const message = "no es usuario autorizado";
+  User.findOne({ where: { validation } })
+    .them((user) => {
+      if (user.role == "ADMIN") {
+        propiedadesModels.create(payload).then((data) => {
+          return res.status(201).send(data);
+        });
+      } else {
+        return res.status(401).send(message);
+      }
+    })
+    .catch((error) => {
+      return res.status(500).send(error);
+    });
 });
 
 module.exports = router;

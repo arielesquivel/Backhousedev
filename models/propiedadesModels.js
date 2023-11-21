@@ -8,10 +8,6 @@ propiedadesModels.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    User_id: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     ambientes: {
       type: DataTypes.INTEGER,
     },
