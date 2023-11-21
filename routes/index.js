@@ -58,5 +58,8 @@ router.post("/login", (req, res) => {
     res.clearCookie("token").sendStatus(204);
   });
 });
+router.get("/me", validateUser, (req, res) => {
+  res.send(req.user);
+});
 
 module.exports = router;
