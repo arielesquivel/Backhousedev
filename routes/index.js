@@ -50,5 +50,8 @@ router.post("/login", (req, res) => {
     });
   });
 });
+router.get("/me", validateUser, (req, res) => {
+  res.send(req.user);
+});
 
 module.exports = router;
