@@ -1,3 +1,4 @@
-import usersModels from "./usersModels";
+import User from "./usersModels";
 import propiedadesModels from "./propiedadesModels";
-export { usersModels, propiedadesModels };
+import Cita from "./citasModels";
+export { User, propiedadesModels, Cita };

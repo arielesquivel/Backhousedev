@@ -15,4 +15,4 @@ function validateUser(req, res, next) {
   res.sendStatus(401);
 }
 
-module.exports = validateUser;
+module.exports = { validateUser };
