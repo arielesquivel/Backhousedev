@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/usersModels");
 const propiedadesModels = require("../models/propiedadesModels");
+const Cita = require("../models/citasModels");
 const jwt = require("jsonwebtoken");
 const validateAuth = require("../middleware/auth");
 
@@ -60,10 +61,27 @@ router.post("/login", (req, res) => {
   });
 });
 router.get("/me", validateAuth.validateUser, (req, res) => {
+  const validation = req.user.email;
   res.send(req.user);
 });
 
-router.get("/", validateAuth.validateUser, (req, res) => {});
+router.get("/citas/all", validateAuth.validateUser, (req, res) => {
+  const validation = req.user.email;
+  const message = "no es usuario autorizado";
+  User.findOne({ where: { validation } })
+    .them((user) => {
+      if (user.role == "ADMIN") {
+        Cita.findAll().then((citas) => {
+          return res.send(citas);
+        });
+      } else {
+        return res.status(401).send(message);
+      }
+    })
+    .catch((error) => {
+      return res.status(500).send(error);
+    });
+});
 router.post("/propiedades", validateAuth.validateUser, (req, res) => {
   const payload = req.body;
   const validation = req.user.email;
