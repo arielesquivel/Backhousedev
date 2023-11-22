@@ -2,7 +2,6 @@ const { Sequelize, Model, DataTypes } = require("sequelize");
 const db = require("../db");
 
 class Cita extends Model {}
-
 Cita.init(
   {
     user_id: {
