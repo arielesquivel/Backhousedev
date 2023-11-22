@@ -1,4 +1,4 @@
-import User from "./usersModels";
-import propiedadesModels from "./propiedadesModels";
-import Cita from "./citasModels";
-export { User, propiedadesModels, Cita };
+const User = require("./usersModels");
+const propiedadesModels = require("./propiedadesModels");
+const Cita = require("./citasModels");
+module.exports = { User, propiedadesModels, Cita };
