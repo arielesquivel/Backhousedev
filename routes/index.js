@@ -52,16 +52,16 @@ router.post("/login", (req, res) => {
       }
     });
   });
-  router.get("/me", validateAuth.validateUser, (req, res) => {
+});
+ router.get("/me", validateAuth.validateUser, (req, res) => {
     //const validation = req.user.email;
     res.send(req.user);
   });
-});
 
-router.post("/logout", (req, res) => {
-  res.clearCookie("token").sendStatus(204);
+  router.post("/logout", (req, res) => {
+    res.clearCookie("token").sendStatus(204);
+  });
 });
-
 router.get("/citas/all", validateAuth.validateUser, (req, res) => {
   const validation = req.user.email;
   const message = "no es usuario autorizado";

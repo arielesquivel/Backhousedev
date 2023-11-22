@@ -4,8 +4,8 @@ class propiedadesModels extends Model {}
 
 propiedadesModels.init(
   {
-    categorita: {
-      //categoria //
+    categoria: {
+
       type: DataTypes.STRING,
       allowNull: false,
     },
