@@ -52,16 +52,17 @@ router.post("/login", (req, res) => {
       }
     });
   });
-  router.get("/home", validateAuth, (req, res) => {
-    res.send(req.user);
-  });
+  //router.get("/home", validateAuth, (req, res) => {
+  // res.send(req.user);
+  //});
 
   router.post("/logout", (req, res) => {
     res.clearCookie("token").sendStatus(204);
   });
 });
 router.get("/me", validateAuth.validateUser, (req, res) => {
-  const validation = req.user.email;
+  console.log(req);
+  //const validation = req.user.email;
   res.send(req.user);
 });
 
