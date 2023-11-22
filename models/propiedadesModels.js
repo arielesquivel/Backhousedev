@@ -5,6 +5,7 @@ class propiedadesModels extends Model {}
 propiedadesModels.init(
   {
     categoria: {
+
       type: DataTypes.STRING,
       allowNull: false,
     },

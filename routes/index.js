@@ -11,7 +11,7 @@ const generateToken = (payload) => {
   const options = { expiresIn: "1h" };
   return jwt.sign(payload, secretKey, options);
 };
-router.post("/register", (req, res, next) => {
+router.post("/register", (req, res) => {
   console.log(req.body);
   const rol = req.body.rol || "usuario";
   User.create({ ...req.body, rol }).then((user) => {
@@ -52,20 +52,16 @@ router.post("/login", (req, res) => {
       }
     });
   });
-  //router.get("/home", validateAuth, (req, res) => {
-  // res.send(req.user);
-  //});
+});
+ router.get("/me", validateAuth.validateUser, (req, res) => {
+    //const validation = req.user.email;
+    res.send(req.user);
+  });
 
   router.post("/logout", (req, res) => {
     res.clearCookie("token").sendStatus(204);
   });
 });
-router.get("/me", validateAuth.validateUser, (req, res) => {
-  console.log(req);
-  //const validation = req.user.email;
-  res.send(req.user);
-});
-
 router.get("/citas/all", validateAuth.validateUser, (req, res) => {
   const validation = req.user.email;
   const message = "no es usuario autorizado";
@@ -100,6 +96,29 @@ router.post("/propiedades", validateAuth.validateUser, (req, res) => {
     .catch((error) => {
       return res.status(500).send(error);
     });
+});
+
+router.get("./filter", async (req, res) => {
+  try {
+    const { categorita, localidad, precio } = req.query;
+    const filter = {};
+    if (categorita) {
+      filter.categorita = categorita;
+    }
+    if (localidad) {
+      filter.localidad = localidad;
+    }
+    if (precio) {
+      filter.precio = parseFloat(precio);
+    }
+    const filtrarPropiedades = await PropiedadesModel.findAll({
+      where: filter,
+    });
+    res.json(filtrarPropiedades);
+  } catch (error) {
+    console.error("Error filtrado:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 module.exports = router;
