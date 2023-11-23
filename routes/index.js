@@ -53,15 +53,15 @@ router.post("/login", (req, res) => {
     });
   });
 });
- router.get("/me", validateAuth.validateUser, (req, res) => {
-    //const validation = req.user.email;
-    res.send(req.user);
-  });
-
-  router.post("/logout", (req, res) => {
-    res.clearCookie("token").sendStatus(204);
-  });
+router.get("/me", validateAuth.validateUser, (req, res) => {
+  //const validation = req.user.email;
+  res.send(req.user);
 });
+
+router.post("/logout", (req, res) => {
+  res.clearCookie("token").sendStatus(204);
+});
+
 router.get("/citas/all", validateAuth.validateUser, (req, res) => {
   const validation = req.user.email;
   const message = "no es usuario autorizado";
@@ -97,7 +97,14 @@ router.post("/propiedades", validateAuth.validateUser, (req, res) => {
       return res.status(500).send(error);
     });
 });
-
+router.get("./properties", (req, res) => {
+  propiedadesModels
+    .findAll()
+    .then((data) => send(data))
+    .catch((error) => {
+      return res.send(error);
+    });
+});
 router.get("./filter", async (req, res) => {
   try {
     const { categorita, localidad, precio } = req.query;
@@ -111,7 +118,7 @@ router.get("./filter", async (req, res) => {
     if (precio) {
       filter.precio = parseFloat(precio);
     }
-    const filtrarPropiedades = await PropiedadesModel.findAll({
+    const filtrarPropiedades = await propiedadesModels.findAll({
       where: filter,
     });
     res.json(filtrarPropiedades);
