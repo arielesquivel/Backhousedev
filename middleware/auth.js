@@ -6,8 +6,9 @@ router.use(cookieParser());
 
 function validateUser(req, res, next) {
   const token = req.cookies.token;
+  console.log("token-----------------", token);
   const { payload } = validateToken(token);
-
+  console.log("payload-----------------", payload);
   req.user = payload;
 
   if (payload) return next();
