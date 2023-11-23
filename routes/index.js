@@ -3,14 +3,15 @@ const router = express.Router();
 const User = require("../models/usersModels");
 const propiedadesModels = require("../models/propiedadesModels");
 const Cita = require("../models/citasModels");
+const { generateToken } = require("../config/envs");
 const jwt = require("jsonwebtoken");
-const validateAuth = require("../middleware/auth");
+const { validateUser } = require("../middleware/auth");
 
-const generateToken = (payload) => {
+/*const generateToken = (payload) => {
   const secretKey = "secret-key";
   const options = { expiresIn: "1h" };
   return jwt.sign(payload, secretKey, options);
-};
+};*/
 router.post("/register", (req, res) => {
   console.log(req.body);
   const rol = req.body.rol || "usuario";
@@ -53,7 +54,7 @@ router.post("/login", (req, res) => {
     });
   });
 });
-router.get("/me", validateAuth.validateUser, (req, res) => {
+router.get("/me", validateUser, (req, res) => {
   //const validation = req.user.email;
   res.send(req.user);
 });
@@ -62,7 +63,7 @@ router.post("/logout", (req, res) => {
   res.clearCookie("token").sendStatus(204);
 });
 
-router.get("/citas/all", validateAuth.validateUser, (req, res) => {
+router.get("/citas/all", validateUser, (req, res) => {
   const validation = req.user.email;
   const message = "no es usuario autorizado";
   User.findOne({ where: { validation } })
@@ -79,7 +80,7 @@ router.get("/citas/all", validateAuth.validateUser, (req, res) => {
       return res.status(500).send(error);
     });
 });
-router.post("/propiedades", validateAuth.validateUser, (req, res) => {
+router.post("/propiedades", validateUser, (req, res) => {
   const payload = req.body;
   const validation = req.user.email;
   const message = "no es usuario autorizado";
