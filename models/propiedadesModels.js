@@ -1,11 +1,10 @@
 const { Sequelize, Model, DataTypes } = require("sequelize");
 const db = require("../db");
-class propiedadesModels extends Model {}
+class Propiedades extends Model {}
 
-propiedadesModels.init(
+Propiedades.init(
   {
     categoria: {
-
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -40,8 +39,8 @@ propiedadesModels.init(
   },
   {
     sequelize: db,
-    modelName: "propiedadesModels",
+    modelName: "propiedades",
   }
 );
 
-module.exports = propiedadesModels;
+module.exports = Propiedades;
