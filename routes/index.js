@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/usersModels");
-const propiedadesModels = require("../models/propiedadesModels");
+const Propiedades = require("../models/propiedadesModels");
 const Cita = require("../models/citasModels");
 const { generateToken } = require("../config/envs");
 const jwt = require("jsonwebtoken");
@@ -64,11 +64,11 @@ router.post("/logout", (req, res) => {
 });
 
 router.get("/citas/all", validateUser, (req, res) => {
-  const validation = req.user.email;
+  const email = req.user.email;
   const message = "no es usuario autorizado";
-  User.findOne({ where: { validation } })
+  User.findOne({ where: { email } })
     .them((user) => {
-      if (user.role == "ADMIN") {
+      if (user.rol == "ADMIN") {
         Cita.findAll().then((citas) => {
           return res.send(citas);
         });
@@ -82,12 +82,12 @@ router.get("/citas/all", validateUser, (req, res) => {
 });
 router.post("/propiedades", validateUser, (req, res) => {
   const payload = req.body;
-  const validation = req.user.email;
+  const email = req.user.email;
   const message = "no es usuario autorizado";
-  User.findOne({ where: { validation } })
-    .them((user) => {
-      if (user.role == "ADMIN") {
-        propiedadesModels.create(payload).then((data) => {
+  User.findOne({ where: { email } })
+    .then((user) => {
+      if (user.rol == "ADMIN") {
+        Propiedades.create(payload).then((data) => {
           return res.status(201).send(data);
         });
       } else {
@@ -99,8 +99,7 @@ router.post("/propiedades", validateUser, (req, res) => {
     });
 });
 router.get("./properties", (req, res) => {
-  propiedadesModels
-    .findAll()
+  Propiedades.findAll()
     .then((data) => send(data))
     .catch((error) => {
       return res.send(error);
@@ -119,7 +118,7 @@ router.get("./filter", async (req, res) => {
     if (precio) {
       filter.precio = parseFloat(precio);
     }
-    const filtrarPropiedades = await propiedadesModels.findAll({
+    const filtrarPropiedades = await Propiedades.findAll({
       where: filter,
     });
     res.json(filtrarPropiedades);
