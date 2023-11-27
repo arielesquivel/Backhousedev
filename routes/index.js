@@ -6,6 +6,7 @@ const Cita = require("../models/citasModels");
 const { generateToken } = require("../config/envs");
 const jwt = require("jsonwebtoken");
 const { validateUser } = require("../middleware/auth");
+const { json } = require("sequelize");
 
 /*const generateToken = (payload) => {
   const secretKey = "secret-key";
@@ -98,11 +99,15 @@ router.post("/propiedades", validateUser, (req, res) => {
       return res.status(500).send(error);
     });
 });
-router.get("./properties", (req, res) => {
+router.get("/properties", (req, res) => {
+  console.log("--------------------");
   Propiedades.findAll()
-    .then((data) => send(data))
+    .then((data) => {
+      res.json(data);
+      console.log("------------data");
+    })
     .catch((error) => {
-      return res.send(error);
+      console.log(error);
     });
 });
 router.get("./filter", async (req, res) => {
