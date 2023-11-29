@@ -15,10 +15,18 @@ const { json } = require("sequelize");
 };*/
 router.post("/register", (req, res) => {
   console.log(req.body);
+  const email = req.body.email;
   const rol = req.body.rol || "usuario";
-  User.create({ ...req.body, rol }).then((user) => {
-    console.log("users", user);
-    return res.status(201).send(user);
+  User.findOne({ where: { id } }).then((result) => {
+    if (!result) {
+      User.create({ ...req.body, rol }).then((user) => {
+        console.log("users", user);
+        return res.status(201).send(user);
+      });
+    } else {
+      const message = "usuario ya esta registrado con ese mail";
+      return res.send(message);
+    }
   });
   /* const { email, password, name } = req.body;
   const role = req.body.role || "user";
@@ -99,6 +107,26 @@ router.post("/propiedades", validateUser, (req, res) => {
       return res.status(500).send(error);
     });
 });
+router.get("/users/:id", (req, res) => {
+  const id = req.params.id;
+  User.findOne({ where: { id } })
+    .then((result) => {
+      res.send(result);
+    })
+    .catch((error) => {
+      res.send(error);
+    });
+});
+router.get("/propiedades/:id", (req, res) => {
+  const id = req.params.id;
+  Propiedades.findOne({ where: { id } })
+    .then((result) => {
+      res.send(result);
+    })
+    .catch((error) => {
+      res.send(error);
+    });
+});
 router.get("/properties", (req, res) => {
   console.log("--------------------");
   Propiedades.findAll()
@@ -112,8 +140,14 @@ router.get("/properties", (req, res) => {
 });
 router.get("./filter", async (req, res) => {
   try {
-    const { categorita, localidad, precio } = req.query;
+    const { categorita, localidad, precio, vender, alquilar } = req.query;
     const filter = {};
+    if (vender) {
+      filter.vender = vender;
+    }
+    if (alquilar) {
+      filter.alquilar = alquilar;
+    }
     if (categorita) {
       filter.categorita = categorita;
     }
