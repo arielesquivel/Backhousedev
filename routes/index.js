@@ -25,7 +25,7 @@ router.post("/register", (req, res) => {
       });
     } else {
       const message = "usuario ya esta registrado con ese mail";
-      return res.send(message);
+      return res.status(401).json(message);
     }
   });
   /* const { email, password, name } = req.body;
@@ -97,14 +97,14 @@ router.post("/propiedades", validateUser, (req, res) => {
     .then((user) => {
       if (user.rol == "ADMIN") {
         Propiedades.create(payload).then((data) => {
-          return res.status(201).send(data);
+          return res.status(201).json(data);
         });
       } else {
-        return res.status(401).send(message);
+        return res.status(401).json(message);
       }
     })
     .catch((error) => {
-      return res.status(500).send(error);
+      return res.status(500).json(error);
     });
 });
 router.get("/users/:id", (req, res) => {
