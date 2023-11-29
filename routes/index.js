@@ -138,7 +138,7 @@ router.get("/properties", (req, res) => {
       console.log(error);
     });
 });
-router.get("./filter", async (req, res) => {
+router.get("/filter", async (req, res) => {
   try {
     const { categorita, localidad, precio, vender, alquilar } = req.query;
     const filter = {};
