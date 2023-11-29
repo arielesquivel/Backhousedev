@@ -17,7 +17,7 @@ router.post("/register", (req, res) => {
   console.log(req.body);
   const email = req.body.email;
   const rol = req.body.rol || "usuario";
-  User.findOne({ where: { id } }).then((result) => {
+  User.findOne({ where: { email } }).then((result) => {
     if (!result) {
       User.create({ ...req.body, rol }).then((user) => {
         console.log("users", user);
