@@ -4,11 +4,30 @@ class Propiedades extends Model {}
 
 Propiedades.init(
   {
+    nombre: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    alquilar: {
+      type: DataTypes.BOOLEAN,
+    },
+    vender: {
+      type: DataTypes.BOOLEAN,
+    },
     categoria: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     ambientes: {
+      type: DataTypes.INTEGER,
+    },
+    baños: {
+      type: DataTypes.INTEGER,
+    },
+    metraje: {
+      type: DataTypes.INTEGER,
+    },
+    dormitorios: {
       type: DataTypes.INTEGER,
     },
     disponibilidad: {
