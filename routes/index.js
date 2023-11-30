@@ -13,6 +13,7 @@ const { json } = require("sequelize");
   const options = { expiresIn: "1h" };
   return jwt.sign(payload, secretKey, options);
 };*/
+
 router.post("/register", (req, res) => {
   console.log(req.body);
   const email = req.body.email;
@@ -28,6 +29,7 @@ router.post("/register", (req, res) => {
       return res.status(401).json(message);
     }
   });
+
   /* const { email, password, name } = req.body;
   const role = req.body.role || "user";
   User.create(email, password, name, role)
@@ -63,6 +65,7 @@ router.post("/login", (req, res) => {
     });
   });
 });
+
 router.get("/me", validateUser, (req, res) => {
   //const validation = req.user.email;
   res.send(req.user);
@@ -70,6 +73,70 @@ router.get("/me", validateUser, (req, res) => {
 
 router.post("/logout", (req, res) => {
   res.clearCookie("token").sendStatus(204);
+});
+
+router.post("/cita", validateUser, (req, res) => {
+  const email = req.user.email;
+  const message = "no se encontro su perfil";
+  console.log(req.body);
+  const fecha = req.body.fecha;
+  const propiedad_id = req.body.propiedad_id.prop;
+  User.findOne({ where: { email } })
+    .then((result) => {
+      if (result) {
+        const id = result.id;
+        const payload = {
+          user_id: id,
+          propiedad_id: propiedad_id,
+          fecha: fecha,
+        };
+        Cita.create(payload)
+          .then((data) => {
+            return res.status(201).json(data);
+          })
+          .catch((error) => {
+            return res.status(403).json(error);
+          });
+      } else {
+        return res.status(401).json(message);
+      }
+    })
+    .catch((error) => {
+      return res.status(500).json(error);
+    });
+});
+
+router.get("/citas", validateUser, (req, res) => {
+  const email = req.user.email;
+  const message = "Hubo un error, no se puedo encontrar el usuario";
+  User.findOne({ where: { email } }).then((result) => {
+    if (result) {
+      const id = result.id;
+      Cita.findAll({ where: { id } }).then((citas) => {
+        return res.send(citas);
+      });
+    } else {
+      //const message = "usuario ya esta registrado con ese mail";
+      return res.status(401).json(message);
+    }
+  });
+});
+
+router.get("/perfil", validateUser, (req, res) => {
+  const email = req.user.email;
+  const message = "Hubo un error, no se puedo encontrar el usuario";
+  User.findOne({ where: { email } })
+    .then((result) => {
+      if (result) {
+        return res.send(result);
+      } else {
+        //const message = "usuario ya esta registrado con ese mail";
+        return res.status(401).json(message);
+      }
+    })
+    .catch((error) => {
+      return res.status(500).send(error);
+    });
 });
 
 router.get("/citas/all", validateUser, (req, res) => {
@@ -89,6 +156,7 @@ router.get("/citas/all", validateUser, (req, res) => {
       return res.status(500).send(error);
     });
 });
+
 router.post("/propiedades", validateUser, (req, res) => {
   const payload = req.body;
   const email = req.user.email;
@@ -107,6 +175,7 @@ router.post("/propiedades", validateUser, (req, res) => {
       return res.status(500).json(error);
     });
 });
+
 router.get("/users/:id", (req, res) => {
   const id = req.params.id;
   User.findOne({ where: { id } })
@@ -117,6 +186,7 @@ router.get("/users/:id", (req, res) => {
       res.send(error);
     });
 });
+
 router.get("/propiedades/:id", (req, res) => {
   const id = req.params.id;
   Propiedades.findOne({ where: { id } })
@@ -127,6 +197,7 @@ router.get("/propiedades/:id", (req, res) => {
       res.send(error);
     });
 });
+
 router.get("/properties", (req, res) => {
   console.log("--------------------");
   Propiedades.findAll()
@@ -138,6 +209,7 @@ router.get("/properties", (req, res) => {
       console.log(error);
     });
 });
+
 router.get("/filter", async (req, res) => {
   try {
     const { categorita, localidad, precio, vender, alquilar } = req.query;
