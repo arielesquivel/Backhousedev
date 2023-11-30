@@ -7,6 +7,33 @@ const { generateToken } = require("../config/envs");
 const jwt = require("jsonwebtoken");
 const { validateUser } = require("../middleware/auth");
 const { json } = require("sequelize");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "jonapandolfi@gmail.com",
+    pass: "",
+  },
+});
+
+const mailOptions = {
+  from: "jonapandolfi@gmail.com",
+  //to: "recipient_email@example.com",
+  subject: "Confirmacíon de cita",
+  text: "gracias por pedir una cita, lo esperamos!",
+};
+const sendEmail = (email) => {
+  const to = email;
+  const mail = [...mailOptions, to];
+
+  transporter.sendMail(mail, (error, info) => {
+    if (error) {
+      return console.error(error.message);
+    }
+    console.log("Email sent:", info.response);
+  });
+};
 
 /*const generateToken = (payload) => {
   const secretKey = "secret-key";
@@ -21,7 +48,6 @@ router.post("/register", (req, res) => {
   User.findOne({ where: { email } }).then((result) => {
     if (!result) {
       User.create({ ...req.body, rol }).then((user) => {
-        console.log("users", user);
         return res.status(201).send(user);
       });
     } else {
@@ -78,7 +104,6 @@ router.post("/logout", (req, res) => {
 router.post("/cita", validateUser, (req, res) => {
   const email = req.user.email;
   const message = "no se encontro su perfil";
-  console.log(req.body);
   const fecha = req.body.fecha;
   const propiedad_id = req.body.propiedad_id.prop;
   User.findOne({ where: { email } })
@@ -92,6 +117,7 @@ router.post("/cita", validateUser, (req, res) => {
         };
         Cita.create(payload)
           .then((data) => {
+            //sendEmail(email);
             return res.status(201).json(data);
           })
           .catch((error) => {
