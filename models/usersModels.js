@@ -33,6 +33,14 @@ User.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    lastName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    contact: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     rol: {
       type: DataTypes.STRING,
       allowNull: false,
