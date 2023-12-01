@@ -84,6 +84,7 @@ router.post("/login", (req, res) => {
         const payload = {
           email: user.email,
           name: user.name,
+          rol: user.rol,
         };
         const token = generateToken(payload);
         res.status(201).cookie("token", token).send(payload);
@@ -94,6 +95,7 @@ router.post("/login", (req, res) => {
 
 router.get("/me", validateUser, (req, res) => {
   //const validation = req.user.email;
+  console.log(req.user);
   res.send(req.user);
 });
 
