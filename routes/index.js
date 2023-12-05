@@ -532,4 +532,25 @@ router.get("/filter", async (req, res) => {
   }
 });
 
+router.delete("propiedades/delete", validateUser, (req, res) => {
+  const id = req.params.id;
+  const email = req.user.email;
+  const message = "no es usuario autorizado";
+  User.findOne({ where: { email } })
+    .then((user) => {
+      if (user.rol == "ADMIN") {
+        Propiedades.destroy({ where: { id } }).then((data) => {
+          return res.status(201).json(data);
+        });
+      } else {
+        return res.status(401).json(message);
+      }
+    })
+    .catch((error) => {
+      return res.status(500).json(error);
+    });
+});
+//router.router.put("/users/:userId", (req, res) => {});
+//router.router.put("/propiedades/cambiar/:userId", (req, res) => {});
+
 module.exports = router;
