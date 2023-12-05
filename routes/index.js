@@ -28,6 +28,7 @@ const sendEmailAdministrador = () => {
   const mail = mailOptions;
 
   transporter.sendMail(mail, (error, info) => {
+    console.log(mail);
     if (error) {
       return console.error(error.message);
     }
@@ -72,11 +73,12 @@ const sendEmailConfirmacion = (email) => {
   const to = email;
   const mailOptions = {
     from: "jonayariel@hotmail.com",
-    //to: "recipient_email@example.com",
+    to: "",
     subject: "Confirmacíon de cita",
     text: "gracias por pedir una cita, espere por favor para recibir un correo confirmando o no la cita",
   };
-  const mail = [...mailOptions, to];
+  let mail = mailOptions;
+  mail.to = to;
 
   transporter.sendMail(mail, (error, info) => {
     if (error) {
@@ -158,7 +160,9 @@ router.post("/cita", validateUser, (req, res) => {
   const email = req.user.email;
   const message = "no se encontro su perfil";
   const fecha = req.body.fecha;
+  console.log("*******************************************", req.body);
   const propiedad_id = req.body.propiedad_id.prop;
+  console.log("********************************************", propiedad_id);
   User.findOne({ where: { email } })
     .then((result) => {
       if (result) {
@@ -171,6 +175,7 @@ router.post("/cita", validateUser, (req, res) => {
         Cita.create(payload)
           .then((data) => {
             //sendEmail(email);
+            console.log("********************************************", email);
             sendEmailConfirmacion(email);
             sendEmailAdministrador();
 
@@ -273,9 +278,11 @@ router.post("/favoritos", validateUser, (req, res) => {
   const email = req.user.email;
   const message = "no se encontro su perfil";
   const propiedad_id = req.body;
+  console.log("***********************************", req.body.data);
   User.findOne({ where: { email } })
     .then((result) => {
       if (result) {
+        //console.log("******************************", result);
         const id = result.id;
 
         const payload = {
