@@ -276,9 +276,10 @@ router.post("/citas/rechazado", validateUser, (req, res) => {
 */
 router.post("/favoritos", validateUser, (req, res) => {
   const email = req.user.email;
+  console.log("----------------------", email);
   const message = "no se encontro su perfil";
-  const propiedad_id = req.body;
-  console.log("***********************************", req.body.data);
+  const { propiedad_id } = req.body;
+  console.log("***********************************", req.body);
   User.findOne({ where: { email } })
     .then((result) => {
       if (result) {
