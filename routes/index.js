@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require("../models/usersModels");
 const Propiedades = require("../models/propiedadesModels");
 const Cita = require("../models/citasModels");
+const Favorito = require("../models/favoritosModels");
 const { generateToken } = require("../config/envs");
 const jwt = require("jsonwebtoken");
 const { validateUser } = require("../middleware/auth");
@@ -10,21 +11,71 @@ const { json } = require("sequelize");
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  service: "hotmail",
   auth: {
-    user: "jonapandolfi@gmail.com",
-    pass: "",
+    user: "jonayariel@hotmail.com",
+    pass: "Plataforma5Equipo1",
   },
 });
 
-const mailOptions = {
-  from: "jonapandolfi@gmail.com",
-  //to: "recipient_email@example.com",
-  subject: "Confirmacíon de cita",
-  text: "gracias por pedir una cita, lo esperamos!",
+const sendEmailAdministrador = () => {
+  const mailOptions = {
+    from: "jonayariel@hotmail.com",
+    to: "jonayariel@hotmail.com",
+    subject: "Cita pendiente",
+    text: "Alguien a agendado una cita, por favor ingrese a la pagina para confirma la cita",
+  };
+  const mail = mailOptions;
+
+  transporter.sendMail(mail, (error, info) => {
+    if (error) {
+      return console.error(error.message);
+    }
+    console.log("Email sent:", info.response);
+  });
 };
-const sendEmail = (email) => {
+const sendEmailAceptacion = (email) => {
   const to = email;
+  const mailOptions = {
+    from: "jonayariel@hotmail.com",
+    //to: "recipient_email@example.com",
+    subject: "Cita aceptada",
+    text: "gracias por pedir una cita, su cita fue aceptada. Lo esperamos!",
+  };
+  const mail = [...mailOptions, to];
+
+  transporter.sendMail(mail, (error, info) => {
+    if (error) {
+      return console.error(error.message);
+    }
+    console.log("Email sent:", info.response);
+  });
+};
+const sendEmailRechazado = (email) => {
+  const to = email;
+  const mailOptions = {
+    from: "jonayariel@hotmail.com",
+    //to: "recipient_email@example.com",
+    subject: "Cita rechazada",
+    text: "gracias por pedir una cita. Lamentablemente, ha habido un problema y no se ha podido confirmar esta cita. Por favor, comuniquese con nosotros para más información",
+  };
+  const mail = [...mailOptions, to];
+
+  transporter.sendMail(mail, (error, info) => {
+    if (error) {
+      return console.error(error.message);
+    }
+    console.log("Email sent:", info.response);
+  });
+};
+const sendEmailConfirmacion = (email) => {
+  const to = email;
+  const mailOptions = {
+    from: "jonayariel@hotmail.com",
+    //to: "recipient_email@example.com",
+    subject: "Confirmacíon de cita",
+    text: "gracias por pedir una cita, espere por favor para recibir un correo confirmando o no la cita",
+  };
   const mail = [...mailOptions, to];
 
   transporter.sendMail(mail, (error, info) => {
@@ -120,6 +171,9 @@ router.post("/cita", validateUser, (req, res) => {
         Cita.create(payload)
           .then((data) => {
             //sendEmail(email);
+            sendEmailConfirmacion(email);
+            sendEmailAdministrador();
+
             return res.status(201).json(data);
           })
           .catch((error) => {
@@ -133,14 +187,79 @@ router.post("/cita", validateUser, (req, res) => {
       return res.status(500).json(error);
     });
 });
-
-router.get("/citas", validateUser, (req, res) => {
+router.post("/citas/aceptado", validateUser, (req, res) => {
+  const mail = req.body;
   const email = req.user.email;
+  const message = "no es usuario autorizado";
+  User.findOne({ where: { email } })
+    .then((user) => {
+      if (user.rol == "ADMIN") {
+        sendEmailAceptacion(mail);
+        return res.status(200);
+      } else {
+        return res.status(401).json(message);
+      }
+    })
+    .catch((error) => {
+      return res.status(500).json(error);
+    });
+});
+router.post("/citas/rechazado", validateUser, (req, res) => {
+  const mail = req.body;
+  const email = req.user.email;
+  const message = "no es usuario autorizado";
+  User.findOne({ where: { email } })
+    .then((user) => {
+      if (user.rol == "ADMIN") {
+        sendEmailRechazado(mail);
+        return res.status(200);
+      } else {
+        return res.status(401).json(message);
+      }
+    })
+    .catch((error) => {
+      return res.status(500).json(error);
+    });
+});
+/*
+ router.get("/citas", validateUser, (req, res) => {
+  const email = req.user.email;
+  let citasAux = [];
+  let userAux = {};
+  let propiedadesAux = {};
+  let nuevoArray = [];
   const message = "Hubo un error, no se puedo encontrar el usuario";
   User.findOne({ where: { email } }).then((result) => {
     if (result) {
       const id = result.id;
       Cita.findAll({ where: { id } }).then((citas) => {
+        citasAux = citas;
+        for (let element in citasAux) {
+          const id = element.user_id;
+
+          User.findOne({ where: { id } }).then((result) => {
+            userAux = result;
+            const id = element.propiedad_id;
+            Propiedades.findOne({ where: { id } }).then((result) => {
+              propiedadesAux = result;
+              let citaAux = {
+                id: element.id,
+                fecha: element.fecha,
+                direccion: propiedadesAux.direccion,
+                localidad: propiedadesAux.localidad,
+                email: userAux.email,
+                nombre: userAux.name,
+                apellido: userAux.lastName,
+                contacto: userAux.contact,
+                image: propiedadesAux.image,
+              };
+              nuevoArray.push(citaAux);
+            });
+          });
+        }
+        return res.send(nuevoArray);
+      });
+      //then((citas) => {
         return res.send(citas);
       });
     } else {
@@ -149,7 +268,56 @@ router.get("/citas", validateUser, (req, res) => {
     }
   });
 });
+*/
+router.post("/favoritos", validateUser, (req, res) => {
+  const email = req.user.email;
+  const message = "no se encontro su perfil";
+  const propiedad_id = req.body;
+  User.findOne({ where: { email } })
+    .then((result) => {
+      if (result) {
+        const id = result.id;
 
+        const payload = {
+          user_id: id,
+          propiedad_id: propiedad_id,
+        };
+        Favorito.create(payload)
+          .then((data) => {
+            return res.status(201).json(data);
+          })
+          .catch((error) => {
+            return res.status(403).json(error);
+          });
+      } else {
+        return res.status(401).json(message);
+      }
+    })
+    .catch((error) => {
+      return res.status(500).json(error);
+    });
+});
+router.get("/favoritos", validateUser, (req, res) => {
+  const email = req.user.email;
+  const message = "Hubo un error, no se puedo encontrar el usuario";
+  let payload = [];
+  User.findOne({ where: { email } })
+    .then((result) => {
+      const user_id = result.id;
+      Favorito.findAll({ where: { user_id } }).then((data) => {
+        for (let element in data) {
+          const id = element.propiedad_id;
+          Propiedades.findOne({ where: { id } }).then((propiedad) => {
+            payload.push(propiedad);
+          });
+        }
+        return res.send(payload);
+      });
+    })
+    .catch((error) => {
+      return res.status(500).send(error);
+    });
+});
 router.get("/perfil", validateUser, (req, res) => {
   const email = req.user.email;
   const message = "Hubo un error, no se puedo encontrar el usuario";
@@ -166,15 +334,48 @@ router.get("/perfil", validateUser, (req, res) => {
       return res.status(500).send(error);
     });
 });
-
+/*
 router.get("/citas/all", validateUser, (req, res) => {
   const email = req.user.email;
   const message = "no es usuario autorizado";
+  let citasAux = [];
+  let userAux = {};
+  let propiedadesAux = {};
+  let nuevoArray = [];
+  let flag = "";
   User.findOne({ where: { email } })
-    .them((user) => {
+    .then((user) => {
       if (user.rol == "ADMIN") {
         Cita.findAll().then((citas) => {
-          return res.send(citas);
+          citasAux = citas;
+           for (let element in citasAux) {
+            const id = element.user_id;
+            console.log("111111111111111111111111111111111");
+            console.log(element);
+            User.findOne({ where: { id } }).then((result) => {
+              userAux = result;
+              const id = element.propiedad_id;
+              console.log("2222222222222222222222222222222222");
+              Propiedades.findOne({ where: { id } }).then((result) => {
+                console.log("3333333333333333333333333333333333");
+                propiedadesAux = result;
+                let citaAux = {
+                  id: element.id,
+                  fecha: element.fecha,
+                  direccion: propiedadesAux.direccion,
+                  localidad: propiedadesAux.localidad,
+                  email: userAux.email,
+                  nombre: userAux.name,
+                  apellido: userAux.lastName,
+                  contacto: userAux.contact,
+                  image: propiedadesAux.image,
+                };
+                nuevoArray.push(citaAux);
+              });
+            });
+          }
+          console.log(flag);
+          return res.send(nuevoArray);
         });
       } else {
         return res.status(401).send(message);
@@ -184,7 +385,63 @@ router.get("/citas/all", validateUser, (req, res) => {
       return res.status(500).send(error);
     });
 });
+*/
+router.get("/citas/all", validateUser, async (req, res) => {
+  try {
+    const email = req.user.email;
+    const message = "no es usuario autorizado";
+    let citasAux = [];
+    let userAux = {};
+    let propiedadesAux = {};
+    let nuevoArray = [];
+    let flag = "";
 
+    const user = await User.findOne({ where: { email } });
+
+    if (user.rol !== "ADMIN") {
+      return res.status(401).send(message);
+    }
+
+    const citas = await Cita.findAll();
+
+    for (let element of citas) {
+      const userId = element.user_id;
+      console.log("111111111111111111111111111111111");
+      console.log(element);
+
+      const userResult = await User.findOne({ where: { id: userId } });
+      userAux = userResult;
+
+      const propiedadId = element.propiedad_id;
+      console.log("2222222222222222222222222222222222");
+
+      const propiedadesResult = await Propiedades.findOne({
+        where: { id: propiedadId },
+      });
+      console.log("3333333333333333333333333333333333");
+      propiedadesAux = propiedadesResult;
+
+      let citaAux = {
+        id: element.id,
+        fecha: element.fecha,
+        direccion: propiedadesAux.direccion,
+        localidad: propiedadesAux.localidad,
+        email: userAux.email,
+        nombre: userAux.name,
+        apellido: userAux.lastName,
+        contacto: userAux.contact,
+        image: propiedadesAux.image,
+      };
+      nuevoArray.push(citaAux);
+    }
+
+    console.log(flag);
+    return res.send(nuevoArray);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send(error);
+  }
+});
 router.post("/propiedades", validateUser, (req, res) => {
   const payload = req.body;
   const email = req.user.email;
