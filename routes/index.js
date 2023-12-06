@@ -10,8 +10,8 @@ const { validateUser } = require("../middleware/auth");
 const { json } = require("sequelize");
 const nodemailer = require("nodemailer");
 
-const smtpTransport = require("nodemailer-smtp-transport");
-const { google } = require("googleapis");
+//const smtpTransport = require("nodemailer-smtp-transport");
+//const { google } = require("googleapis");
 
 const clientId =
   "646065791404-8nuegmaohvpl5lli8f9f41u4ea5ablb9.apps.googleusercontent.com";
@@ -20,18 +20,16 @@ const refreshToken = "YOUR_REFRESH_TOKEN";
 
 //pass: "Plataforma5Equipo1",
 
-const transporter = nodemailer.createTransport(
-  smtpTransport({
-    service: "gmail",
-    auth: {
-      type: "OAuth2",
-      user: "jonayariel@gmail.com",
-      clientId,
-      clientSecret,
-      //refreshToken,
-    },
-  })
-);
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    type: "OAuth2",
+    user: "jonayariel@gmail.com",
+    clientId,
+    clientSecret,
+    //refreshToken,
+  },
+});
 
 const sendEmailAdministrador = () => {
   const mailOptions = {
@@ -177,9 +175,9 @@ router.post("/cita", validateUser, (req, res) => {
   const email = req.user.email;
   const message = "no se encontro su perfil";
   const fecha = req.body.fecha;
-  console.log("*******************************************", req.body);
+  console.log("cita ruta--------------", req.body);
   const propiedad_id = req.body.propiedad_id.prop;
-  console.log("********************************************", propiedad_id);
+  console.log("propiedad id ------------------------cita", propiedad_id);
   User.findOne({ where: { email } })
     .then((result) => {
       if (result) {
@@ -192,7 +190,10 @@ router.post("/cita", validateUser, (req, res) => {
         Cita.create(payload)
           .then((data) => {
             //sendEmail(email);
-            console.log("********************************************", email);
+            console.log(
+              "*****cita***************************************",
+              email
+            );
             sendEmailConfirmacion(email);
             sendEmailAdministrador();
 
@@ -298,7 +299,7 @@ router.delete("/favoritos", validateUser, (req, res) => {
   User.findOne({ where: { email } })
     .then((result) => {
       if (result) {
-        //console.log("******************************", result);
+        console.log("********************favoritos**********", result);
         const id = result.id;
 
         const payload = {
@@ -325,11 +326,11 @@ router.post("/favoritos", validateUser, (req, res) => {
   console.log("----------------------", email);
   const message = "no se encontro su perfil";
   const { propiedad_id } = req.body;
-  console.log("***********************************", req.body);
+  console.log("**************post favoritos*********************", req.body);
   User.findOne({ where: { email } })
     .then((result) => {
       if (result) {
-        //console.log("******************************", result);
+        console.log("**********post fav ********************", result);
         const id = result.id;
 
         const payload = {
@@ -353,15 +354,19 @@ router.post("/favoritos", validateUser, (req, res) => {
 });
 router.get("/favoritos", validateUser, (req, res) => {
   const email = req.user.email;
+  console.log("----------get de favoritos", req.user);
   const message = "Hubo un error, no se puedo encontrar el usuario";
   let payload = [];
+  console.log("favoritos get ----------", email);
   User.findOne({ where: { email } })
     .then((result) => {
       const user_id = result.id;
       Favorito.findAll({ where: { user_id } }).then((data) => {
+        console.log("favoritos findall--------------", data);
         for (let element in data) {
           const id = element.propiedad_id;
           Propiedades.findOne({ where: { id } }).then((propiedad) => {
+            console.log("propiedad----------", propiedad);
             payload.push(propiedad);
           });
         }
@@ -631,7 +636,6 @@ router.put("/users/cambiar", validateUser, (req, res) => {
 });
 
 router.put("/propiedades/cambiar/", validateUser, (req, res) => {
-  //const email = req.user.email;
   const rol = req.user.rol;
   if (rol == "ADMIN") {
     const {
@@ -701,93 +705,6 @@ router.put("/propiedades/cambiar/", validateUser, (req, res) => {
   } else {
     return res.status(401).json(message);
   }
-
-  // User.findOne({ where: { email } })
-  //  .then((user) => {});
 });
-//router.router.put("/propiedades/cambiar/:userId", (req, res) => {});
-/** 
- * Propiedades.init(
-  {
-    nombre: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    alquilar: {
-      type: DataTypes.BOOLEAN,
-    },
-    vender: {
-      type: DataTypes.BOOLEAN,
-    },
-    categoria: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    ambientes: {
-      type: DataTypes.INTEGER,
-    },
-    baños: {
-      type: DataTypes.INTEGER,
-    },
-    metraje: {
-      type: DataTypes.INTEGER,
-    },
-    dormitorios: {
-      type: DataTypes.INTEGER,
-    },
-    disponibilidad: {
-      type: DataTypes.BOOLEAN,
-    },
-    direccion: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    localidad: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    localizacion: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    precio: {
-      type: DataTypes.DOUBLE,
-    },
-    Image: {
-      type: DataTypes.STRING,
-    },
-    description: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  },
- * 
- * ===============================================================
-email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    salt: {
-      type: DataTypes.STRING,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    contact: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    rol: {
-      type: DataTypes.STRING,
-      allowNull: false,
-**/
+
 module.exports = router;
