@@ -18,23 +18,23 @@ const clientId =
 const clientSecret = "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";
 const refreshToken = "YOUR_REFRESH_TOKEN";
 
-//pass: "Plataforma5Equipo1",
+//type: "OAuth2",
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  service: "hotmail",
   auth: {
-    type: "OAuth2",
-    user: "jonayariel@gmail.com",
-    clientId,
-    clientSecret,
+    user: "jonayariel@hotmail.com",
+    pass: "Plataforma5Equipo1",
+    //clientId,
+    // clientSecret,
     //refreshToken,
   },
 });
 
 const sendEmailAdministrador = () => {
   const mailOptions = {
-    from: "jonayariel@gmail.com",
-    to: "jonayariel@gmail.com",
+    from: "jonayariel@hotmail.com",
+    to: "jonayariel@hotmail.com",
     subject: "Cita pendiente",
     text: "Alguien a agendado una cita, por favor ingrese a la pagina para confirma la cita",
   };
@@ -51,7 +51,7 @@ const sendEmailAdministrador = () => {
 const sendEmailAceptacion = (email) => {
   const to = email;
   const mailOptions = {
-    from: "jonayariel@gmail.com",
+    from: "jonayariel@hotmail.com",
     to: "",
     subject: "Cita aceptada",
     text: "gracias por pedir una cita, su cita fue aceptada. Lo esperamos!",
@@ -69,7 +69,7 @@ const sendEmailAceptacion = (email) => {
 const sendEmailRechazado = (email) => {
   const to = email;
   const mailOptions = {
-    from: "jonayariel@gmail.com",
+    from: "jonayariel@hotmail.com",
     to: "",
     subject: "Cita rechazada",
     text: "gracias por pedir una cita. Lamentablemente, ha habido un problema y no se ha podido confirmar esta cita. Por favor, comuniquese con nosotros para más información",
@@ -87,7 +87,7 @@ const sendEmailRechazado = (email) => {
 const sendEmailConfirmacion = (email) => {
   const to = email;
   const mailOptions = {
-    from: "jonayariel@gmail.com",
+    from: "jonayariel@hotmail.com",
     to: "",
     subject: "Confirmacíon de cita",
     text: "gracias por pedir una cita, espere por favor para recibir un correo confirmando o no la cita",
@@ -654,6 +654,7 @@ router.put("/propiedades/cambiar/", validateUser, (req, res) => {
       Image,
       description,
     } = req.body;
+    console.log("°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°° req", req.body);
     let payload = {};
     if (nombre) {
       payload.nombre = nombre;
@@ -694,9 +695,13 @@ router.put("/propiedades/cambiar/", validateUser, (req, res) => {
     if (description) {
       payload.description = description;
     }
-
+    console.log("°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°° payload", payload);
     Propiedades.update({ payload }, { where: { id } })
       .then((result) => {
+        comsole.log(
+          "°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°° Resultado",
+          result
+        );
         return res.status(201).send(result);
       })
       .catch((error) => {
