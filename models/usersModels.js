@@ -57,4 +57,11 @@ User.beforeCreate(async (user) => {
   user.password = hash;
 });
 
+User.beforeUpdate(async (user) => {
+  if (user.password) {
+    const hash = await user.Hash(user.password);
+    user.password = hash;
+  }
+});
+
 module.exports = User;

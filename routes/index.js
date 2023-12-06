@@ -10,18 +10,33 @@ const { validateUser } = require("../middleware/auth");
 const { json } = require("sequelize");
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  service: "hotmail",
-  auth: {
-    user: "jonayariel@hotmail.com",
-    pass: "Plataforma5Equipo1",
-  },
-});
+const smtpTransport = require("nodemailer-smtp-transport");
+const { google } = require("googleapis");
+
+const clientId =
+  "646065791404-8nuegmaohvpl5lli8f9f41u4ea5ablb9.apps.googleusercontent.com";
+const clientSecret = "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";
+const refreshToken = "YOUR_REFRESH_TOKEN";
+
+//pass: "Plataforma5Equipo1",
+
+const transporter = nodemailer.createTransport(
+  smtpTransport({
+    service: "gmail",
+    auth: {
+      type: "OAuth2",
+      user: "jonayariel@gmail.com",
+      clientId,
+      clientSecret,
+      //refreshToken,
+    },
+  })
+);
 
 const sendEmailAdministrador = () => {
   const mailOptions = {
-    from: "jonayariel@hotmail.com",
-    to: "jonayariel@hotmail.com",
+    from: "jonayariel@gmail.com",
+    to: "jonayariel@gmail.com",
     subject: "Cita pendiente",
     text: "Alguien a agendado una cita, por favor ingrese a la pagina para confirma la cita",
   };
@@ -38,12 +53,13 @@ const sendEmailAdministrador = () => {
 const sendEmailAceptacion = (email) => {
   const to = email;
   const mailOptions = {
-    from: "jonayariel@hotmail.com",
-    //to: "recipient_email@example.com",
+    from: "jonayariel@gmail.com",
+    to: "",
     subject: "Cita aceptada",
     text: "gracias por pedir una cita, su cita fue aceptada. Lo esperamos!",
   };
-  const mail = [...mailOptions, to];
+  let mail = mailOptions;
+  mail.to = to;
 
   transporter.sendMail(mail, (error, info) => {
     if (error) {
@@ -55,12 +71,13 @@ const sendEmailAceptacion = (email) => {
 const sendEmailRechazado = (email) => {
   const to = email;
   const mailOptions = {
-    from: "jonayariel@hotmail.com",
-    //to: "recipient_email@example.com",
+    from: "jonayariel@gmail.com",
+    to: "",
     subject: "Cita rechazada",
     text: "gracias por pedir una cita. Lamentablemente, ha habido un problema y no se ha podido confirmar esta cita. Por favor, comuniquese con nosotros para más información",
   };
-  const mail = [...mailOptions, to];
+  let mail = mailOptions;
+  mail.to = to;
 
   transporter.sendMail(mail, (error, info) => {
     if (error) {
@@ -72,7 +89,7 @@ const sendEmailRechazado = (email) => {
 const sendEmailConfirmacion = (email) => {
   const to = email;
   const mailOptions = {
-    from: "jonayariel@hotmail.com",
+    from: "jonayariel@gmail.com",
     to: "",
     subject: "Confirmacíon de cita",
     text: "gracias por pedir una cita, espere por favor para recibir un correo confirmando o no la cita",
@@ -274,6 +291,35 @@ router.post("/citas/rechazado", validateUser, (req, res) => {
   });
 });
 */
+router.delete("/favoritos", validateUser, (req, res) => {
+  const email = req.user.email;
+  const { propiedad_id } = req.body;
+  const message = "no se encontro su perfil";
+  User.findOne({ where: { email } })
+    .then((result) => {
+      if (result) {
+        //console.log("******************************", result);
+        const id = result.id;
+
+        const payload = {
+          user_id: id,
+          propiedad_id: propiedad_id,
+        };
+        Favorito.destroy({ where: { payload } })
+          .then((data) => {
+            return res.status(201).json(data);
+          })
+          .catch((error) => {
+            return res.status(403).json(error);
+          });
+      } else {
+        return res.status(401).json(message);
+      }
+    })
+    .catch((error) => {
+      return res.status(500).json(error);
+    });
+});
 router.post("/favoritos", validateUser, (req, res) => {
   const email = req.user.email;
   console.log("----------------------", email);
@@ -507,10 +553,10 @@ router.get("/filter", async (req, res) => {
   try {
     const { categorita, localidad, precio, vender, alquilar } = req.query;
     const filter = {};
-    if (vender) {
+    if (typeof vender === "boolean") {
       filter.vender = vender;
     }
-    if (alquilar) {
+    if (typeof alquilar === "boolean") {
       filter.alquilar = alquilar;
     }
     if (categorita) {
@@ -550,7 +596,198 @@ router.delete("propiedades/delete", validateUser, (req, res) => {
       return res.status(500).json(error);
     });
 });
-//router.router.put("/users/:userId", (req, res) => {});
-//router.router.put("/propiedades/cambiar/:userId", (req, res) => {});
+router.put("/users/cambiar", validateUser, (req, res) => {
+  const mail = req.user.email;
+  const { id, email, password, name, lastName, contact } = req.body;
+  if (mail != email) {
+    res.status(403).send("el usuario no le pertenece !!");
+  } else {
+    let payload = {};
+    if (email) {
+      payload.email = email;
+    }
+    if (name) {
+      payload.name = name;
+    }
+    if (lastName) {
+      payload.lastName = lastName;
+    }
+    if (contact) {
+      payload.contact = contact;
+    }
+    if (password) {
+      payload.password = password;
+    }
+    User.update({ payload }, { where: { id } })
+      .then((result) => {
+        return res.status(201).send(result);
+      })
+      .catch((error) => {
+        res.status(500).send(error);
+      });
+    // User.findOne({ where: { email } })
+    //  .then((user) => {});
+  }
+});
 
+router.put("/propiedades/cambiar/", validateUser, (req, res) => {
+  //const email = req.user.email;
+  const rol = req.user.rol;
+  if (rol == "ADMIN") {
+    const {
+      id,
+      nombre,
+      alquilar,
+      vender,
+      categoria,
+      ambientes,
+      baños,
+      metraje,
+      dormitorios,
+      direccion,
+      localidad,
+      precio,
+      Image,
+      description,
+    } = req.body;
+    let payload = {};
+    if (nombre) {
+      payload.nombre = nombre;
+    }
+    if (typeof alquilar === "boolean") {
+      payload.alquilar = alquilar;
+    }
+    if (typeof vender === "boolean") {
+      payload.vender = vender;
+    }
+    if (categoria) {
+      payload.categoria = categoria;
+    }
+    if (ambientes) {
+      payload.ambientes = ambientes;
+    }
+    if (baños) {
+      payload.baños = baños;
+    }
+    if (metraje) {
+      payload.metraje = metraje;
+    }
+    if (dormitorios) {
+      payload.dormitorios = dormitorios;
+    }
+    if (direccion) {
+      payload.direccion = direccion;
+    }
+    if (localidad) {
+      payload.localidad = localidad;
+    }
+    if (precio) {
+      payload.precio = precio;
+    }
+    if (Image) {
+      payload.Image = Image;
+    }
+    if (description) {
+      payload.description = description;
+    }
+
+    Propiedades.update({ payload }, { where: { id } })
+      .then((result) => {
+        return res.status(201).send(result);
+      })
+      .catch((error) => {
+        res.status(500).send(error);
+      });
+  } else {
+    return res.status(401).json(message);
+  }
+
+  // User.findOne({ where: { email } })
+  //  .then((user) => {});
+});
+//router.router.put("/propiedades/cambiar/:userId", (req, res) => {});
+/** 
+ * Propiedades.init(
+  {
+    nombre: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    alquilar: {
+      type: DataTypes.BOOLEAN,
+    },
+    vender: {
+      type: DataTypes.BOOLEAN,
+    },
+    categoria: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    ambientes: {
+      type: DataTypes.INTEGER,
+    },
+    baños: {
+      type: DataTypes.INTEGER,
+    },
+    metraje: {
+      type: DataTypes.INTEGER,
+    },
+    dormitorios: {
+      type: DataTypes.INTEGER,
+    },
+    disponibilidad: {
+      type: DataTypes.BOOLEAN,
+    },
+    direccion: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    localidad: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    localizacion: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    precio: {
+      type: DataTypes.DOUBLE,
+    },
+    Image: {
+      type: DataTypes.STRING,
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  },
+ * 
+ * ===============================================================
+email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    salt: {
+      type: DataTypes.STRING,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    contact: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    rol: {
+      type: DataTypes.STRING,
+      allowNull: false,
+**/
 module.exports = router;
